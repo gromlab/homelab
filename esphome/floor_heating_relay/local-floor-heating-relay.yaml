@@ -1,0 +1,91 @@
+# =====================================================================
+# ESPHome Configuration: Floor Heating Relay
+# =====================================================================
+# Main configuration that imports the floor-heating-relay package from GitHub
+#
+# Usage:
+#   1. Add all required secrets to ESPHome's Secrets Manager (see below)
+#   2. Customize the substitutions below for your specific setup
+#   3. Flash to your T-Relay ESP32 module via ESPHome dashboard
+#
+# IMPORTANT: Do NOT create a secrets.yaml file. Use ESPHome Dashboard
+# Secrets Manager instead (UI-based and much safer).
+# =====================================================================
+
+# =====================================================================
+# HOW TO USE SECRETS IN ESPHOME
+# =====================================================================
+#
+# ESPHome has a built-in Secrets Manager that you access via the UI:
+#
+# 1. Open ESPHome Dashboard
+# 2. Click the three dots (...) menu on any device
+# 3. Select "Secrets Editor"
+# 4. Add your secrets here (they're stored in secrets.yaml but in
+#    a secure location separate from your device configs)
+#
+# NEVER commit secrets.yaml to git. ESPHome Dashboard handles this
+# automatically - secrets are not synced to version control.
+#
+# =====================================================================
+# REQUIRED SECRETS - Add these to ESPHome Secrets Manager
+# =====================================================================
+#
+# wifi_ssid: "Your WiFi Network Name"
+#     - The SSID of your WiFi network
+#     - Example: "MyHomeWiFi"
+#
+# wifi_password: "Your WiFi Password"
+#     - Your WiFi network password
+#     - Example: "super_secure_password_123"
+#
+# floor_heating_relay_api_key: "base64-encoded-key"
+#     - Home Assistant API encryption key
+#     - Generate with: esphome dashboard --generate-encryption-key
+#     - ESPHome will display the key - copy and paste it here
+#     - Example: "lg+J9OIBTUAmSxkAAeffuCzaxKhx+kLs0V3nTYrTLGg="
+#
+# floor_heating_relay_ota_password: "secure-password"
+#     - Protects over-the-air firmware updates
+#     - Create any strong password (min 8 characters)
+#     - Example: "fw_update_secure_pass_2026"
+#
+# floor_heating_relay_ap_password: "fallback-ap-password"
+#     - WiFi fallback hotspot password (if WiFi connection fails)
+#     - Device broadcasts: "Floor Heating Relay Hotspot"
+#     - Create any password you remember (min 8 characters)
+#     - Example: "fallback_wifi_1234"
+#
+# =====================================================================
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# =====================================================================
+# CUSTOMIZE HERE - Override substitutions for your setup
+# =====================================================================
+substitutions:
+  # Zone names - Customize these to match your heating zones
+  zone_1_name: Basement
+  zone_2_name: Main Floor
+  zone_3_name: Front Bedroom
+  zone_4_name: Top Floor
+  
+  # GPIO pins - Only override if your hardware differs from T-Relay defaults
+  # relay_zone_1_pin: GPIO21
+  # relay_zone_2_pin: GPIO19
+  # relay_zone_3_pin: GPIO18
+  # relay_zone_4_pin: GPIO05
+  
+  # thermostat_zone_1_pin: GPIO27
+  # thermostat_zone_2_pin: GPIO26
+  # thermostat_zone_3_pin: GPIO13
+  # thermostat_zone_4_pin: GPIO23
+
+# =====================================================================
+# IMPORT THE PACKAGE FROM GITHUB
+# =====================================================================
+packages:
+  floor_heating_relay: github://yourname/floor-heating-relay/esphome/floor-heating-relay.yaml
