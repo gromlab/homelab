@@ -1,0 +1,222 @@
+# =====================================================================
+# ESPHome Package: UPS HID Monitor Base Configuration
+# =====================================================================
+# Shared configuration for ESP32-S3 boards monitoring CyberPower UPS
+# units via USB HID, with NUT server compatibility.
+# Board: ESP32-S3-DevKitC-1 (requires OTG splitter with 5V power injection)
+# Component: github://gromlab/esphome-components (forked with 2026.x fix)
+# =====================================================================
+
+# =====================================================================
+# SUBSTITUTIONS - Defaults (can be overridden per device)
+# =====================================================================
+substitutions:
+  update_interval: "10s"
+  protocol_timeout: "15s"
+  log_level: "DEBUG"
+
+# =====================================================================
+# ESP32-S3 PLATFORM CONFIGURATION
+# =====================================================================
+esphome:
+  platformio_options:
+    build_flags:
+      - -DBOARD_HAS_PSRAM
+    board_build.arduino.memory_type: qio_opi
+    board_build.f_flash: 80000000L
+    board_build.flash_mode: qio
+
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+# =====================================================================
+# LOGGING CONFIGURATION
+# =====================================================================
+logger:
+  level: ${log_level}
+  baud_rate: 115200
+  hardware_uart: UART0
+
+# =====================================================================
+# WIFI CONFIGURATION
+# =====================================================================
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${friendly_name} Fallback"
+
+captive_portal:
+
+# =====================================================================
+# OVER-THE-AIR FIRMWARE UPDATES
+# =====================================================================
+ota:
+  - platform: esphome
+    password: !secret wifi_password
+
+# =====================================================================
+# WEB SERVER
+# =====================================================================
+web_server:
+  port: 80
+
+# =====================================================================
+# EXTERNAL COMPONENTS - UPS HID (gromlab fork with ESPHome 2026.x fix)
+# =====================================================================
+external_components:
+  - source: github://gromlab/esphome-components@fix/esphome-2026-sensor-compatibility
+    components: [ups_hid, nut_server]
+
+# =====================================================================
+# UPS HID COMPONENT
+# =====================================================================
+ups_hid:
+  id: ups_monitor
+  update_interval: ${update_interval}
+  protocol_timeout: ${protocol_timeout}
+  protocol: cyberpower
+  simulation_mode: false
+
+# =====================================================================
+# SENSORS
+# =====================================================================
+sensor:
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Battery Level"
+    id: battery_level
+    type: battery_level
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Input Voltage"
+    id: input_voltage
+    type: input_voltage
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Output Voltage"
+    id: output_voltage
+    type: output_voltage
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Load Percentage"
+    id: load_percentage
+    type: load_percent
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Runtime Remaining"
+    id: runtime_remaining
+    type: runtime
+
+  - platform: uptime
+    name: "Uptime"
+    update_interval: 60s
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+
+# =====================================================================
+# TEXT SENSORS
+# =====================================================================
+text_sensor:
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "UPS Status"
+    id: ups_status_text
+    type: status
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Detected Protocol"
+    type: protocol
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "UPS Manufacturer"
+    type: manufacturer
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "UPS Model"
+    type: model
+
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+
+  - platform: version
+    name: "ESPHome Version"
+
+# =====================================================================
+# BINARY SENSORS
+# =====================================================================
+binary_sensor:
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Battery Charging"
+    type: charging
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Overload Warning"
+    type: overload
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Online"
+    type: online
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "On Battery"
+    type: on_battery
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Low Battery"
+    type: low_battery
+
+  - platform: ups_hid
+    ups_hid_id: ups_monitor
+    name: "Fault"
+    type: fault
+
+# =====================================================================
+# BUTTONS - UPS Control
+# =====================================================================
+button:
+  - platform: ups_hid
+    name: "Beeper Enable"
+    beeper_action: enable
+  - platform: ups_hid
+    name: "Beeper Disable"
+    beeper_action: disable
+  - platform: ups_hid
+    name: "Beeper Mute"
+    beeper_action: mute
+  - platform: ups_hid
+    name: "Battery Test Quick"
+    test_action: battery_quick
+
+# =====================================================================
+# NUMBER - UPS Shutdown Delay
+# =====================================================================
+number:
+  - platform: ups_hid
+    name: "Shutdown Delay"
+    delay_type: shutdown
+
+# =====================================================================
+# NUT SERVER
+# =====================================================================
+nut_server:
+  ups_hid_id: ups_monitor
+  port: 3493
