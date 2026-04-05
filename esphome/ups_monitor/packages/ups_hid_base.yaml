@@ -1,26 +1,45 @@
 # =====================================================================
-# ESPHome Package: UPS HID Monitor Base Configuration
+# ESPHome Package: UPS HID Monitor Configuration
 # =====================================================================
-# Shared configuration for ESP32-S3 boards monitoring CyberPower UPS
-# units via USB HID, with NUT server compatibility.
-# Board: ESP32-S3-DevKitC-1 (requires OTG splitter with 5V power injection)
-# Component: github://gromlab/esphome-components (forked with 2026.x fix)
+# UPS-specific configuration for ESP32-S3-DevKitC-1 boards monitoring
+# CyberPower CP1500PFCLCD UPS units via USB HID protocol.
+#
+# This package adds ONLY the UPS monitoring components to a device.
+# Base device configuration (esphome, esp32, wifi, api, ota, logger)
+# must be defined in the per-device YAML.
+#
+# Hardware Requirements:
+#   - ESP32-S3-DevKitC-1 with native USB OTG port
+#   - USB-C OTG splitter with 5V power injection (e.g., GELRHONR)
+#   - USB-A to USB-B cable from splitter to UPS
+#
+# Key Configuration Notes:
+#   - platformio_options with PSRAM/flash flags are REQUIRED for USB
+#     host stack initialization - included in this package
+#   - hardware_uart: UART0 is REQUIRED to free native USB port from
+#     JTAG - must be set in device logger config
+#   - flash_size: 16MB must be set in device esp32 config
+#   - OTG splitter with external 5V power injection is REQUIRED for
+#     UPS USB data line activation
+#
+# Component: github://gromlab/esphome-components
+#   Fork with ESPHome 2026.x sensor compatibility fix
+#   Branch: fix/esphome-2026-sensor-compatibility
 # =====================================================================
 
+
 # =====================================================================
-# SUBSTITUTIONS - Defaults (can be overridden per device)
+# SUBSTITUTIONS - Defaults (override per device if needed)
 # =====================================================================
 substitutions:
   update_interval: "10s"
   protocol_timeout: "15s"
-  log_level: "DEBUG"
+
 
 # =====================================================================
-# ESP32-S3 PLATFORM CONFIGURATION
+# PLATFORMIO OPTIONS - Required for USB host stack initialization
 # =====================================================================
 esphome:
-  name: ${device_name}
-  friendly_name: ${friendly_name}
   platformio_options:
     build_flags:
       - -DBOARD_HAS_PSRAM
@@ -28,43 +47,22 @@ esphome:
     board_build.f_flash: 80000000L
     board_build.flash_mode: qio
 
-esp32:
-  board: esp32-s3-devkitc-1
-  flash_size: 16MB
-  framework:
-    type: esp-idf
 
 # =====================================================================
-# LOGGING CONFIGURATION
+# LOGGING - Override to free native USB port from JTAG
 # =====================================================================
 logger:
-  level: ${log_level}
+  level: DEBUG
   baud_rate: 115200
   hardware_uart: UART0
 
-# =====================================================================
-# WIFI CONFIGURATION
-# =====================================================================
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  ap:
-    ssid: "${friendly_name} Fallback"
-
-captive_portal:
 
 # =====================================================================
-# OVER-THE-AIR FIRMWARE UPDATES
-# =====================================================================
-ota:
-  - platform: esphome
-    password: !secret wifi_password
-
-# =====================================================================
-# WEB SERVER
+# WEB SERVER - Local status page
 # =====================================================================
 web_server:
   port: 80
+
 
 # =====================================================================
 # EXTERNAL COMPONENTS - UPS HID (gromlab fork with ESPHome 2026.x fix)
@@ -73,8 +71,9 @@ external_components:
   - source: github://gromlab/esphome-components@fix/esphome-2026-sensor-compatibility
     components: [ups_hid, nut_server]
 
+
 # =====================================================================
-# UPS HID COMPONENT
+# UPS HID COMPONENT - CyberPower USB HID protocol
 # =====================================================================
 ups_hid:
   id: ups_monitor
@@ -83,8 +82,9 @@ ups_hid:
   protocol: cyberpower
   simulation_mode: false
 
+
 # =====================================================================
-# SENSORS
+# SENSORS - UPS telemetry data
 # =====================================================================
 sensor:
   - platform: ups_hid
@@ -125,8 +125,9 @@ sensor:
     name: "WiFi Signal"
     update_interval: 60s
 
+
 # =====================================================================
-# TEXT SENSORS
+# TEXT SENSORS - UPS identification and status
 # =====================================================================
 text_sensor:
   - platform: ups_hid
@@ -157,8 +158,9 @@ text_sensor:
   - platform: version
     name: "ESPHome Version"
 
+
 # =====================================================================
-# BINARY SENSORS
+# BINARY SENSORS - UPS state flags
 # =====================================================================
 binary_sensor:
   - platform: ups_hid
@@ -191,33 +193,39 @@ binary_sensor:
     name: "Fault"
     type: fault
 
+
 # =====================================================================
-# BUTTONS - UPS Control
+# BUTTONS - UPS control actions
 # =====================================================================
 button:
   - platform: ups_hid
     name: "Beeper Enable"
     beeper_action: enable
+
   - platform: ups_hid
     name: "Beeper Disable"
     beeper_action: disable
+
   - platform: ups_hid
     name: "Beeper Mute"
     beeper_action: mute
+
   - platform: ups_hid
     name: "Battery Test Quick"
     test_action: battery_quick
 
+
 # =====================================================================
-# NUMBER - UPS Shutdown Delay
+# NUMBER - UPS shutdown delay configuration
 # =====================================================================
 number:
   - platform: ups_hid
     name: "Shutdown Delay"
     delay_type: shutdown
 
+
 # =====================================================================
-# NUT SERVER
+# NUT SERVER - Network UPS Tools protocol compatibility
 # =====================================================================
 nut_server:
   ups_hid_id: ups_monitor
