@@ -1,0 +1,20 @@
+# =====================================================================
+# ESPHome Configuration: UPS Monitor Server
+# =====================================================================
+# Monitors CyberPower CP1500PFCLCD UPS connected to server rack
+# =====================================================================
+
+substitutions:
+  device_name: ups-monitor-server
+  friendly_name: UPS Monitor Server
+
+packages:
+  ups_base: !include packages/ups_hid_base.yaml
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+api:
+  encryption:
+    key: "6S5Ge05qToWjOdhcbhrmmnEv6ceimF2R0X6F2efCuvE="
