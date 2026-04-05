@@ -34,7 +34,7 @@
 substitutions:
   update_interval: "10s"
   protocol_timeout: "15s"
-
+  ups_protocol: "generic"
 
 # =====================================================================
 # PLATFORMIO OPTIONS - Required for USB host stack initialization
